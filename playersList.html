@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Players List</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+
+  <body>
+    <header>
+      <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="index.html">ICC Player Management</a>
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div
+            class="collapse navbar-collapse justify-content-end"
+            id="navbarNav"
+          >
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link" aria-current="page" href="index.html"
+                  >Home</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link active" href="./playersList.html"
+                  >Players List</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="addPlayers.html">Add Players</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <section class="container">
+      <h1>Player List</h1>
+
+      <label for="filterByRole" class="form-label">Filter by Player Role:</label
+      ><br />
+      <select id="filterByRole" class="form-control">
+        <option value="all">All</option>
+        <option value="batsman">Batsman</option>
+        <option value="bowler">Bowler</option>
+        <option value="all-rounder">All-Rounder</option></select
+      ><br />
+
+      <ul id="showPlayers" class="list-group"></ul>
+
+      <p id="playerDeleteMsg"></p>
+    </section>
+
+    <script>
+      const apiUrl =
+        "https://players-backend-student-neog-ca.replit.app/players";
+      const showPlayers = document.querySelector("#showPlayers");
+      const playerDeleteMsg = document.querySelector("#playerDeleteMsg");
+
+      function fetchPlayersData() {
+        playerDeleteMsg.textContent = "";
+
+        showPlayers.innerHTML = `<div class="alert alert-success" role="alert" id="successAlert">
+      Loading.....!
+    </div>`;
+
+        fetch(apiUrl)
+          .then(function (response) {
+            return response.json();
+          })
+          .then(function (data) {
+            if (data) {
+              showPlayers.innerHTML = "";
+              console.log(data);
+              createPlayerList(data);
+              deletePlayers();
+              filterByPlayerRole(data);
+            }
+          })
+          .catch(function (error) {});
+      }
+
+      function createPlayerList(data) {
+        for (let i = 0; i < data.length; i++) {
+          const liElement = document.createElement("li");
+          liElement.className = "list-group-item";
+
+          liElement.innerHTML = `${data[i].fullName} - Playing Role: ${data[i].playingRole} - Nationality: ${data[i].nationality} <button class="btn btn-danger float-end" data-id="${data[i]._id}" id="deleteBtn">Delete</button>`;
+          showPlayers.appendChild(liElement);
+        }
+      }
+
+      function deletePlayers() {
+        const deleteBtn = document.querySelectorAll("#deleteBtn");
+        for (let i = 0; i < deleteBtn.length; i++) {
+          deleteBtn[i].addEventListener("click", function (event) {
+            playerId = event.target.getAttribute("data-id");
+            const deleteUrl = `https://players-backend-student-neog-ca.replit.app/players/${playerId}`;
+            playerDeleteMsg.textContent = " Deleteing Player.......";
+
+            fetch(deleteUrl, {
+              method: "DELETE",
+            })
+              .then(function (response) {
+                return response.json();
+              })
+              .then(function (data) {
+                if (data) {
+                  fetchPlayersData();
+                }
+              })
+              .catch(function (error) {
+                liElement.textContent =
+                  "An error occured while deleting the player.";
+              });
+          });
+        }
+      }
+
+      function filterByPlayerRole(data) {
+        const filterByRole = document.querySelector("#filterByRole");
+
+        filterByRole.addEventListener("change", function () {
+          showPlayers.textContent = "";
+          let selectedFilter = filterByRole.value;
+          let filteredData = [];
+
+          if (selectedFilter === "all") {
+            fetchPlayersData();
+          } else {
+            for (let i = 0; i < data.length; i++) {
+              if (selectedFilter === data[i].playingRole) {
+                filteredData.push(data[i]);
+              }
+            }
+            createPlayerList(filteredData);
+          }
+        });
+      }
+
+      fetchPlayersData();
+    </script>
+  </body>
+</html>
