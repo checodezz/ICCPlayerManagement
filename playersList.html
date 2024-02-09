@@ -152,12 +152,12 @@
             fetchPlayersData();
           } else {
             for (let i = 0; i < data.length; i++) {
-              if (selectedFilter === data[i].playingRole) {
+              if (selectedFilter === data[i].playingRole.toLowerCase()) {
                 filteredData.push(data[i]);
               }
             }
-            createPlayerList(filteredData);
           }
+          createPlayerList(filteredData);
         });
       }
 
